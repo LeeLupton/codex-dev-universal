@@ -1,0 +1,1 @@
+# Kubernetes deployment notes (placeholder)
