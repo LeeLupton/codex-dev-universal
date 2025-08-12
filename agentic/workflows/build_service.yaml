@@ -1,0 +1,43 @@
+name: build_service
+goal_template: "Build a CRUD service for {{resource}} with tests and a README."
+inputs:
+  resource: string
+steps:
+  - id: plan
+    kind: plan
+    input:
+      constraints: ["90% test coverage", "mypy clean", "black/ruff"]
+  - id: drive_search
+    kind: tool
+    tool: drive.search
+    depends_on: [plan]
+    input:
+      query: "example ERD for {{resource}}"
+      limit: 5
+  - id: web_best_practices
+    kind: tool
+    tool: web.search
+    depends_on: [plan]
+    input:
+      query: "service design best practices for {{resource}}"
+  - id: codegen_api
+    kind: codegen
+    depends_on: [drive_search, web_best_practices]
+    input:
+      stack: "FastAPI + SQLAlchemy + Postgres"
+      deliverables: ["api", "models", "migrations", "tests", "README.md"]
+  - id: eval
+    kind: eval
+    depends_on: [codegen_api]
+    input:
+      commands: ["ruff .", "mypy .", "pytest -q"]
+  - id: repo_commit
+    kind: repo
+    depends_on: [eval]
+    input:
+      message: "auto: scaffold {{resource}} service"
+  - id: notify_done
+    kind: notify
+    depends_on: [repo_commit]
+    input:
+      message: "Run complete for {{resource}}"
